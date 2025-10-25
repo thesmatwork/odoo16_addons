@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_distributor_purchase_order_user,distributor.purchase.order.user,model_distributor_purchase_order,base.group_user,1,1,1,0
+access_distributor_purchase_order_manager,distributor.purchase.order.manager,model_distributor_purchase_order,base.group_system,1,1,1,1
+access_distributor_purchase_order_line_user,distributor.purchase.order.line.user,model_distributor_purchase_order_line,base.group_user,1,1,1,0
+access_distributor_purchase_order_line_manager,distributor.purchase.order.line.manager,model_distributor_purchase_order_line,base.group_system,1,1,1,1

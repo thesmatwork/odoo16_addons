@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Sequence for Distributor Purchase Orders -->
+        <record id="seq_distributor_purchase_order" model="ir.sequence">
+            <field name="name">Distributor Purchase Order</field>
+            <field name="code">distributor.purchase.order</field>
+            <field name="prefix">DPO</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        
+    </data>
+</odoo>
