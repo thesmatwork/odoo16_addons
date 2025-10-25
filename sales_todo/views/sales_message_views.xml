@@ -1,0 +1,46 @@
+<odoo>
+    <record id="view_sales_message_tree" model="ir.ui.view">
+        <field name="name">sales.message.tree</field>
+        <field name="model">sales.message</field>
+        <field name="arch" type="xml">
+            <tree string="Sales Messages">
+                <field name="title"/>
+                <field name="message_type"/>
+                <field name="priority"/>
+                <field name="sender_id"/>
+                <field name="is_read"/>
+                <field name="create_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sales_message_form" model="ir.ui.view">
+        <field name="name">sales.message.form</field>
+        <field name="model">sales.message</field>
+        <field name="arch" type="xml">
+            <form string="Sales Message">
+                <sheet>
+                    <group>
+                        <field name="title"/>
+                        <field name="content" widget="html"/>
+                        <field name="message_type"/>
+                        <field name="priority"/>
+                        <field name="sender_id" readonly="1"/>
+                        <field name="recipient_ids"/>
+                        <field name="is_read"/>
+                        <field name="read_date"/>
+                        <field name="scheduled_date"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sales_message" model="ir.actions.act_window">
+        <field name="name">Sales Messages</field>
+        <field name="res_model">sales.message</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_sales_message_root" name="Sales Messages" parent="menu_sales_todo_root" action="action_sales_message"/>
+</odoo>

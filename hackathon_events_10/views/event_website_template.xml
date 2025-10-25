@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <!-- Extend the attendee popup on the website to add team choice -->
+  <template id="registration_attendee_details_inherit_team"
+            inherit_id="website_event.registration_attendee_details"
+            name="Registration Attendee Details - Add Team">
+    <!-- Insert after the Phone input -->
+    <xpath expr="//input[@type='tel']" position="after">
+
+      <!-- Select existing team -->
+      <div class="form-group col-12 my-2">
+        <label>Select Team</label>
+        <select class="form-control"
+                t-att-name="'%s-team_id' % counter">
+          <option value="">-- Select a Team --</option>
+          <t t-set="teams"
+             t-value="request.env['event.team'].sudo().search([('event_id', '=', event.id)])"/>
+          <t t-foreach="teams" t-as="team">
+            <option t-att-value="team.id">
+              <t t-esc="team.name"/>
+            </option>
+          </t>
+        </select>
+      </div>
+
+      <!-- Or type a new team name -->
+      <div class="form-group col-12 my-2">
+        <label>Or Enter New Team Name</label>
+        <input class="form-control"
+               type="text"
+               t-att-name="'%s-team_name' % counter"
+               placeholder="Enter your Team Name"/>
+      </div>
+
+    </xpath>
+  </template>
+</odoo>

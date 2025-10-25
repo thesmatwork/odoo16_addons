@@ -1,0 +1,10 @@
+<odoo>
+    <data>
+        <record id="data_sales_todo_sequence" model="ir.sequence">
+            <field name="name">Sales Todo Sequence</field>
+            <field name="code">sales.todo</field>
+            <field name="prefix">TODO/</field>
+            <field name="padding">5</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sales_todo_user,sales.todo.user,model_sales_todo,group_sales_todo_user,1,1,1,0
+access_sales_todo_manager,sales.todo.manager,model_sales_todo,group_sales_todo_manager,1,1,1,1
+access_sales_message_user,sales.message.user,model_sales_message,group_sales_todo_user,1,1,1,0
+access_sales_message_manager,sales.message.manager,model_sales_message,group_sales_todo_manager,1,1,1,1

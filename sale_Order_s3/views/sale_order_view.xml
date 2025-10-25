@@ -1,0 +1,28 @@
+<odoo>
+    <record id="view_order_form_inherit_s3" model="ir.ui.view">
+        <field name="name">sale.order.form.s3</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/notebook" position="after">
+                <group string="Order Image">
+                    <field name="order_image" filename="file_name"/>
+                    <field name="file_name"/>
+                    <group>
+                        <button name="action_upload_to_s3"
+                                type="object"
+                                string="Upload to S3"
+                                class="btn-primary"/>
+                        
+                        <!-- Show URL only when it's not empty -->
+                        <field name="order_image_url"
+                               widget="url"
+                               nolabel="1"
+                               readonly="1"
+                               attrs="{'invisible': [('order_image_url','=',False)]}"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
