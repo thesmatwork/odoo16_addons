@@ -1,0 +1,8 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_task_category_user,task.category.user,model_task_category,group_task_user,1,0,0,0
+access_task_category_manager,task.category.manager,model_task_category,group_task_manager,1,1,1,1
+access_generic_task_user,generic.task.user,model_generic_task,group_task_user,1,1,1,0
+access_generic_task_manager,generic.task.manager,model_generic_task,group_task_manager,1,1,1,1
+access_generic_message_user,generic.message.user,model_generic_message,group_task_user,1,1,1,0
+access_generic_message_manager,generic.message.manager,model_generic_message,group_task_manager,1,1,1,1
+access_message_read_status_user,generic.message.read.status.user,model_generic_message_read_status,group_task_user,1,1,1,1

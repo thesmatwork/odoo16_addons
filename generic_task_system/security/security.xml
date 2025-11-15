@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ============================== -->
+        <!-- Security Groups -->
+        <!-- ============================== -->
+
+        <record id="group_task_user" model="res.groups">
+            <field name="name">Task User</field>
+            <field name="category_id" ref="base.module_category_productivity"/>
+        </record>
+
+        <record id="group_task_manager" model="res.groups">
+            <field name="name">Task Manager</field>
+            <field name="category_id" ref="base.module_category_productivity"/>
+            <field name="implied_ids" eval="[(4, ref('group_task_user'))]"/>
+        </record>
+
+
+        <!-- ============================== -->
+        <!-- Record Rules -->
+        <!-- ============================== -->
+
+        <!-- Task User Rule -->
+        <record id="task_user_rule" model="ir.rule">
+            <field name="name">Task User Rule</field>
+            <field name="model_id" ref="model_generic_task"/>
+            <field name="domain_force">['|', ('assigned_user_id', '=', user.id), ('created_by_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_task_user'))]"/>
+        </record>
+
+        <!-- Task Manager Rule -->
+        <record id="task_manager_rule" model="ir.rule">
+            <field name="name">Task Manager Rule</field>
+            <field name="model_id" ref="model_generic_task"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_task_manager'))]"/>
+        </record>
+
+        <!-- Message User Rule -->
+        <record id="message_user_rule" model="ir.rule">
+            <field name="name">Message User Rule</field>
+            <field name="model_id" ref="model_generic_message"/>
+            <field name="domain_force">['|', ('recipient_ids', 'in', [user.id]), ('sender_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_task_user'))]"/>
+        </record>
+
+    </data>
+</odoo>

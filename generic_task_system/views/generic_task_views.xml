@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Generic Task Form View -->
+    <record id="view_generic_task_form" model="ir.ui.view">
+        <field name="name">generic.task.form</field>
+        <field name="model">generic.task</field>
+        <field name="arch" type="xml">
+            <form string="Task">
+                <header>
+                    <button name="mark_in_progress" string="Start Task" type="object" 
+                            class="oe_highlight" 
+                            attrs="{'invisible': [('status', '!=', 'pending')]}"/>
+                    <button name="mark_completed" string="Complete Task" type="object" 
+                            class="oe_highlight" 
+                            attrs="{'invisible': [('status', '=', 'completed')]}"/>
+
+                    <field name="status" widget="statusbar" 
+                           statusbar_visible="draft,pending,in_progress,completed"/>
+                </header>
+
+                <sheet>
+                    <!-- ✅ REMOVED the problematic button here -->
+                    <div class="oe_button_box" name="button_box">
+                        <!-- Display-only button for related record -->
+                        <button class="oe_stat_button" icon="fa-link" disabled="1"
+                                attrs="{'invisible': [('related_record_name', '=', False)]}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Linked to:</span>
+                                <span class="o_stat_value"><field name="related_record_name"/></span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="title"/>
+                        <h1>
+                            <field name="title" placeholder="Task Title..."/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="category_id"/>
+                            <field name="use_case"/>
+                            <field name="tags"/>
+                            <field name="priority"/>
+                        </group>
+                        <group>
+                            <field name="assigned_user_id"/>
+                            <field name="created_by_id" readonly="1"/>
+                            <field name="reviewer_id"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group>
+                            <field name="start_date"/>
+                            <field name="due_date"/>
+                            <field name="completed_date" readonly="1"/>
+                            <field name="estimated_hours"/>
+                        </group>
+                        <group>
+                            <field name="progress" widget="progressbar"/>
+                            <field name="is_overdue" readonly="1"/>
+                            <field name="partner_id"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Description">
+                            <field name="description" widget="html" 
+                                   placeholder="Add task description..."/>
+                        </page>
+                        <page string="Related Record">
+                            <group>
+                                <field name="related_model"/>
+                                <field name="related_record_id"/>
+                                <field name="related_record_name" readonly="1"/>
+                            </group>
+                        </page>
+                        <page string="Custom Data">
+                            <group>
+                                <field name="custom_data" widget="ace" 
+                                       options="{'mode': 'json'}"
+                                       placeholder='{"key": "value"}'/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Generic Task Tree View -->
+    <record id="view_generic_task_tree" model="ir.ui.view">
+        <field name="name">generic.task.tree</field>
+        <field name="model">generic.task</field>
+        <field name="arch" type="xml">
+            <tree string="Tasks" 
+                  decoration-danger="is_overdue" 
+                  decoration-muted="status=='completed'"
+                  decoration-info="status=='in_progress'">
+                <field name="title"/>
+                <field name="category_id"/>
+                <field name="use_case" optional="hide"/>
+                <field name="priority" widget="priority"/>
+                <field name="status"/>
+                <field name="assigned_user_id"/>
+                <field name="due_date"/>
+                <field name="progress" widget="progressbar"/>
+                <field name="is_overdue" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Generic Task Kanban View -->
+    <record id="view_generic_task_kanban" model="ir.ui.view">
+        <field name="name">generic.task.kanban</field>
+        <field name="model">generic.task</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="status" class="o_kanban_small_column">
+                <field name="title"/>
+                <field name="priority"/>
+                <field name="status"/>
+                <field name="assigned_user_id"/>
+                <field name="due_date"/>
+                <field name="is_overdue"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click #{record.is_overdue.raw_value ? 'oe_kanban_card_danger' : ''}">
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title">
+                                            <field name="title"/>
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <field name="category_id"/>
+                                    <div class="text-muted">
+                                        <field name="assigned_user_id" widget="many2one_avatar_user"/>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="priority" widget="priority"/>
+                                        <field name="activity_ids" widget="kanban_activity"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="due_date" widget="date"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Generic Task Calendar View -->
+    <record id="view_generic_task_calendar" model="ir.ui.view">
+        <field name="name">generic.task.calendar</field>
+        <field name="model">generic.task</field>
+        <field name="arch" type="xml">
+            <calendar string="Tasks" date_start="due_date" color="priority" 
+                      quick_add="False" mode="month">
+                <field name="title"/>
+                <field name="assigned_user_id"/>
+                <field name="status"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- Generic Task Search View -->
+    <record id="view_generic_task_search" model="ir.ui.view">
+        <field name="name">generic.task.search</field>
+        <field name="model">generic.task</field>
+        <field name="arch" type="xml">
+            <search string="Tasks">
+                <field name="title"/>
+                <field name="assigned_user_id"/>
+                <field name="category_id"/>
+                <field name="use_case"/>
+                <field name="tags"/>
+                
+                <filter string="My Tasks" name="my_tasks" 
+                        domain="[('assigned_user_id', '=', uid)]"/>
+                <filter string="Created by Me" name="created_by_me" 
+                        domain="[('created_by_id', '=', uid)]"/>
+                
+                <separator/>
+                
+                <filter string="Pending" name="pending" 
+                        domain="[('status', '=', 'pending')]"/>
+                <filter string="In Progress" name="in_progress" 
+                        domain="[('status', '=', 'in_progress')]"/>
+                <filter string="Completed" name="completed" 
+                        domain="[('status', '=', 'completed')]"/>
+                
+                <separator/>
+                
+                <filter string="Overdue" name="overdue" 
+                        domain="[('is_overdue', '=', True)]"/>
+                <filter string="High Priority" name="high_priority" 
+                        domain="[('priority', 'in', ['high', 'urgent'])]"/>
+                
+                <separator/>
+                
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                    <filter string="Priority" name="group_priority" context="{'group_by': 'priority'}"/>
+                    <filter string="Category" name="group_category" context="{'group_by': 'category_id'}"/>
+                    <filter string="Assigned To" name="group_assigned" context="{'group_by': 'assigned_user_id'}"/>
+                    <filter string="Use Case" name="group_use_case" context="{'group_by': 'use_case'}"/>
+                    <filter string="Due Date" name="group_due_date" context="{'group_by': 'due_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Generic Task Action -->
+    <record id="action_generic_task" model="ir.actions.act_window">
+        <field name="name">Tasks</field>
+        <field name="res_model">generic.task</field>
+        <field name="view_mode">kanban,tree,form,calendar</field>
+        <field name="context">{'search_default_my_tasks': 1, 'search_default_pending': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first task
+            </p>
+            <p>
+                Tasks help you track and manage your work efficiently.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Items -->
+    <menuitem id="menu_generic_task" 
+              name="My Tasks" 
+              parent="menu_generic_task_root" 
+              action="action_generic_task" 
+              sequence="10"/>
+
+</odoo>

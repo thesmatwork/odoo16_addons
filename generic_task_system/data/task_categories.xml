@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="category_sales_todo" model="task.category">
+            <field name="name">Sales Todo</field>
+            <field name="code">sales_todo</field>
+            <field name="description">Sales follow-ups and customer management</field>
+            <field name="sequence">10</field>
+            <field name="color">2</field>
+            <field name="icon">fa-handshake</field>
+            <field name="default_priority">medium</field>
+        </record>
+
+        <record id="category_general" model="task.category">
+            <field name="name">General</field>
+            <field name="code">general</field>
+            <field name="description">General purpose tasks</field>
+            <field name="sequence">50</field>
+            <field name="color">1</field>
+            <field name="icon">fa-clipboard-list</field>
+            <field name="default_priority">medium</field>
+        </record>
+    </data>
+</odoo>
