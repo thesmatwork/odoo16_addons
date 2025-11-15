@@ -1,6 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Task Category Action - MOVE THIS TO THE TOP -->
+    <record id="action_task_category" model="ir.actions.act_window">
+        <field name="name">Task Categories</field>
+        <field name="res_model">task.category</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first task category
+            </p>
+            <p>
+                Categories help organize and classify different types of tasks.
+            </p>
+        </field>
+    </record>
+
+    <!-- Task Category Tree View -->
+    <record id="view_task_category_tree" model="ir.ui.view">
+        <field name="name">task.category.tree</field>
+        <field name="model">task.category</field>
+        <field name="arch" type="xml">
+            <tree string="Task Categories" default_order="sequence">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="default_priority"/>
+                <field name="task_count"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
     <!-- Task Category Form View -->
     <record id="view_task_category_form" model="ir.ui.view">
         <field name="name">task.category.form</field>
@@ -36,22 +67,6 @@
         </field>
     </record>
 
-    <!-- Task Category Tree View -->
-    <record id="view_task_category_tree" model="ir.ui.view">
-        <field name="name">task.category.tree</field>
-        <field name="model">task.category</field>
-        <field name="arch" type="xml">
-            <tree string="Task Categories" default_order="sequence">
-                <field name="sequence" widget="handle"/>
-                <field name="name"/>
-                <field name="code"/>
-                <field name="default_priority"/>
-                <field name="task_count"/>
-                <field name="active"/>
-            </tree>
-        </field>
-    </record>
-
     <!-- Task Category Search View -->
     <record id="view_task_category_search" model="ir.ui.view">
         <field name="name">task.category.search</field>
@@ -69,22 +84,6 @@
                     <filter string="Priority" name="group_priority" context="{'group_by': 'default_priority'}"/>
                 </group>
             </search>
-        </field>
-    </record>
-
-    <!-- Task Category Action -->
-    <record id="action_task_category" model="ir.actions.act_window">
-        <field name="name">Task Categories</field>
-        <field name="res_model">task.category</field>
-        <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="view_task_category_tree"/>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Create your first task category
-            </p>
-            <p>
-                Categories help organize and classify different types of tasks.
-            </p>
         </field>
     </record>
 
