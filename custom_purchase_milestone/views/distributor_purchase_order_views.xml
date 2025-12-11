@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit the distributor purchase order form view to add milestone statusbar -->
+    <record id="view_distributor_purchase_order_form_milestone" model="ir.ui.view">
+        <field name="name">distributor.purchase.order.form.milestone</field>
+        <field name="model">distributor.purchase.order</field>
+        <field name="inherit_id" ref="distributor_purchase.view_distributor_purchase_order_form"/>
+        <field name="arch" type="xml">
+            <!-- Add milestone statusbar before the state field -->
+            <xpath expr="//field[@name='state']" position="before">
+                <field name="x_delivery_milestone" widget="statusbar"
+                       options="{'clickable': '1'}"
+                       statusbar_visible="draft,payment_pending,confirmed,shipped,delivered"/>
+            </xpath>
+            
+            <!-- Add delivery info fields in the form -->
+            <xpath expr="//field[@name='notes']" position="after">
+                <field name="x_estimated_delivery"/>
+                <field name="x_delivery_notes"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Add milestone to tree view -->
+    <record id="view_distributor_purchase_order_tree_milestone" model="ir.ui.view">
+        <field name="name">distributor.purchase.order.tree.milestone</field>
+        <field name="model">distributor.purchase.order</field>
+        <field name="inherit_id" ref="distributor_purchase.view_distributor_purchase_order_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="after">
+                <field name="x_delivery_milestone" widget="badge"
+                       decoration-info="x_delivery_milestone == 'draft'"
+                       decoration-warning="x_delivery_milestone == 'payment_pending'"
+                       decoration-primary="x_delivery_milestone == 'confirmed'"
+                       decoration-success="x_delivery_milestone in ['shipped', 'delivered']"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
