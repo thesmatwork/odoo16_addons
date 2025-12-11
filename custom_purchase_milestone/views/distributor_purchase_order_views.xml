@@ -1,31 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Form view with milestone -->
     <record id="view_distributor_purchase_order_form_milestone" model="ir.ui.view">
         <field name="name">distributor.purchase.order.form.milestone</field>
         <field name="model">distributor.purchase.order</field>
+        <field name="priority">20</field>
         <field name="arch" type="xml">
             <form string="Distributor Purchase Order">
                 <header>
                     <field name="x_delivery_milestone" widget="statusbar"
                            options="{'clickable': '1'}"
                            statusbar_visible="draft,payment_pending,confirmed,partial_shipped,shipped,excess_shipped,delivered"/>
-                    <field name="state" widget="statusbar"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,delivered,cancelled"/>
                 </header>
                 <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
                     <group>
                         <group>
-                            <field name="name"/>
                             <field name="distributor_id"/>
                             <field name="order_date"/>
                         </group>
                         <group>
                             <field name="total_amount"/>
-                            <field name="notes"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Order Lines">
-                            <field name="order_line_ids"/>
+                            <field name="order_line_ids">
+                                <tree editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="quantity"/>
+                                    <field name="unit_price"/>
+                                    <field name="subtotal"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="notes" placeholder="Add notes here..."/>
                         </page>
                     </notebook>
                 </sheet>
@@ -33,15 +48,17 @@
         </field>
     </record>
 
+    <!-- Tree view with milestone -->
     <record id="view_distributor_purchase_order_tree_milestone" model="ir.ui.view">
         <field name="name">distributor.purchase.order.tree.milestone</field>
         <field name="model">distributor.purchase.order</field>
+        <field name="priority">20</field>
         <field name="arch" type="xml">
             <tree string="Distributor Purchase Orders">
                 <field name="name"/>
                 <field name="distributor_id"/>
                 <field name="order_date"/>
-                <field name="total_amount"/>
+                <field name="total_amount" sum="Total"/>
                 <field name="state"/>
                 <field name="x_delivery_milestone" widget="badge"
                        decoration-info="x_delivery_milestone == 'draft'"
@@ -50,6 +67,18 @@
                        decoration-success="x_delivery_milestone in ['shipped', 'delivered']"
                        decoration-danger="x_delivery_milestone == 'excess_shipped'"/>
             </tree>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_distributor_purchase_order_milestone" model="ir.actions.act_window">
+        <field name="name">Distributor Purchase Orders</field>
+        <field name="res_model">distributor.purchase.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first distributor purchase order
+            </p>
         </field>
     </record>
 </odoo>

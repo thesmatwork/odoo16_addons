@@ -51,7 +51,6 @@ class DistributorPurchaseOrderLine(models.Model):
         readonly=True,
     )
 
-    # Track line-level shipment status
     line_shipment_status = fields.Selection([
         ('pending', 'Pending'),
         ('partial', 'Partially Shipped'),
@@ -87,7 +86,7 @@ class DistributorPurchaseOrderLine(models.Model):
     def write(self, vals):
         """Track when manual_shipped_qty is modified"""
         if 'manual_shipped_qty' in vals:
-            vals = dict(vals)  # copy to avoid mutating incoming dict
+            vals = dict(vals)
             vals['adjustment_date'] = fields.Datetime.now()
             vals['adjustment_user_id'] = self.env.user.id
         return super(DistributorPurchaseOrderLine, self).write(vals)
@@ -105,7 +104,6 @@ class DistributorPurchaseOrderLine(models.Model):
     def get_manual_shipment_data(self):
         """
         Helper method for API: Returns JSON-friendly dict with all relevant data.
-        Can be called directly from FastAPI endpoint via odoorpc or xmlrpc.
         """
         self.ensure_one()
         order = self.order_id
@@ -132,71 +130,3 @@ class DistributorPurchaseOrderLine(models.Model):
             'unit_price': float(self.unit_price or 0.0),
             'subtotal': float(self.subtotal or 0.0),
         }
-
-    @api.model
-    def get_variance_report_data(self, filters=None):
-        """
-        Optimized method for FastAPI: Get all variance data with optional filters.
-        filters: dict with keys: date_from (str), date_to (str), distributor_ids (list), 
-                               product_ids (list), has_variance (bool), manual_adjusted_only (bool)
-        """
-        domain = [('manual_shipped_qty', '>', 0)]
-
-        if filters:
-            if filters.get('date_from'):
-                domain.append(('order_id.order_date', '>=', filters['date_from']))
-            if filters.get('date_to'):
-                domain.append(('order_id.order_date', '<=', filters['date_to']))
-            if filters.get('distributor_ids'):
-                domain.append(('order_id.distributor_id', 'in', filters['distributor_ids']))
-            if filters.get('product_ids'):
-                domain.append(('product_id', 'in', filters['product_ids']))
-            if filters.get('has_variance'):
-                domain.append(('qty_diff_manual', '!=', 0))
-            if filters.get('manual_adjusted_only'):
-                domain.append(('manual_adjusted', '=', True))
-
-        lines = self.search(domain, order='order_id desc, id desc')
-        return [line.get_manual_shipment_data() for line in lines]
-
-    @api.model
-    def get_variance_summary(self, group_by='product'):
-        """
-        Get aggregated variance data for reporting.
-        group_by: 'product' | 'distributor' | 'order'
-        Returns: list of dicts
-        """
-        if group_by not in ('product', 'distributor', 'order'):
-            group_by = 'product'
-
-        query = """
-            SELECT 
-                CASE 
-                    WHEN %s = 'product' THEN CAST(dpol.product_id AS TEXT)
-                    WHEN %s = 'distributor' THEN CAST(dpo.distributor_id AS TEXT)
-                    ELSE CAST(dpol.order_id AS TEXT)
-                END as group_key,
-                CASE 
-                    WHEN %s = 'product' THEN pt.name
-                    WHEN %s = 'distributor' THEN rp.name
-                    ELSE dpo.name
-                END as group_name,
-                COUNT(dpol.id) as line_count,
-                COALESCE(SUM(dpol.quantity),0) as total_ordered,
-                COALESCE(SUM(dpol.manual_shipped_qty),0) as total_manual_shipped,
-                COALESCE(SUM(dpol.qty_diff_manual),0) as total_variance,
-                COUNT(CASE WHEN dpol.manual_adjusted THEN 1 END) as adjusted_count
-            FROM distributor_purchase_order_line dpol
-            JOIN distributor_purchase_order dpo ON dpol.order_id = dpo.id
-            LEFT JOIN product_product pp ON dpol.product_id = pp.id
-            LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
-            LEFT JOIN res_partner rp ON dpo.distributor_id = rp.id
-            WHERE dpol.manual_shipped_qty > 0
-            GROUP BY group_key, group_name
-            ORDER BY total_variance DESC
-        """
-        # pass the same parameter multiple times for the CASE checks
-        params = (group_by, group_by, group_by, group_by)
-        self.env.cr.execute(query, params)
-        results = self.env.cr.dictfetchall()
-        return results

@@ -8,21 +8,12 @@ class DistributorPurchaseOrder(models.Model):
         ('draft', 'Draft'),
         ('payment_pending', 'Payment Pending'),
         ('confirmed', 'Payment Confirmed'),
+        ('partial_shipped', 'Partially Shipped'),
         ('shipped', 'Shipped'),
+        ('excess_shipped', 'Excess Shipped'),
         ('delivered', 'Delivered'),
     ], string='Delivery Milestone', default='draft', tracking=True,
        help='Track the delivery progress of this purchase order')
-
-    # Optional: Track estimated delivery date
-    x_estimated_delivery = fields.Date(
-        string='Estimated Delivery',
-        help='Expected delivery date for this order'
-    )
-
-    x_delivery_notes = fields.Text(
-        string='Delivery Notes',
-        help='Additional notes about delivery'
-    )
 
     @api.model
     def create(self, vals):
@@ -39,9 +30,17 @@ class DistributorPurchaseOrder(models.Model):
         """Set milestone to confirmed (payment received)"""
         self.write({'x_delivery_milestone': 'confirmed'})
 
+    def action_mark_partial_shipped(self):
+        """Set milestone to partially shipped"""
+        self.write({'x_delivery_milestone': 'partial_shipped'})
+
     def action_mark_shipped(self):
         """Set milestone to shipped"""
         self.write({'x_delivery_milestone': 'shipped'})
+
+    def action_mark_excess_shipped(self):
+        """Set milestone to excess shipped"""
+        self.write({'x_delivery_milestone': 'excess_shipped'})
 
     def action_mark_delivered(self):
         """Set milestone to delivered"""
