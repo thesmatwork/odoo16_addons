@@ -8,8 +8,26 @@
             <xpath expr="//field[@name='state']" position="before">
                 <field name="x_delivery_milestone" widget="statusbar"
                        options="{'clickable': '1'}"
-                       statusbar_visible="draft,confirmed,shipped,delivered"/>
+                       statusbar_visible="draft,confirmed,shipped,delivered,payment_pending,partial_shipped,excess_shipped"/>
             </xpath>
         </field>
     </record>
+
+    <!-- Add milestone to tree view -->
+    <record id="view_order_tree_milestone" model="ir.ui.view">
+        <field name="name">sale.order.tree.milestone</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="after">
+                <field name="x_delivery_milestone" widget="badge"
+                    decoration-info="x_delivery_milestone == 'draft'"
+                    decoration-warning="x_delivery_milestone in ['payment_pending', 'partial_shipped']"
+                    decoration-primary="x_delivery_milestone == 'confirmed'"
+                    decoration-success="x_delivery_milestone in ['shipped', 'delivered']"
+                    decoration-danger="x_delivery_milestone == 'excess_shipped'"/>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>

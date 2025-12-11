@@ -6,6 +6,8 @@ class SaleOrder(models.Model):
     x_delivery_milestone = fields.Selection([
         ('draft', 'Draft'),
         ('confirmed', 'Payment Confirmed'),
+        ('partial_shipped', 'Partially Shipped'),
         ('shipped', 'Shipped'),
+        ('excess_shipped', 'Excess Shipped'),
         ('delivered', 'Delivered'),
     ], string='Delivery Milestone', default='draft', tracking=True)
