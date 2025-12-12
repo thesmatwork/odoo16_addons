@@ -1,5 +1,6 @@
 from odoo import models, fields, api
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
+
 
 class DistributorPurchaseOrder(models.Model):
     _name = 'distributor.purchase.order'
@@ -34,6 +35,20 @@ class DistributorPurchaseOrder(models.Model):
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled')
     ], string='Status', default='draft', tracking=True)
+
+    # =====================================================
+    # DELIVERY MILESTONE TRACKING (from custom_purchase_milestone)
+    # =====================================================
+    x_delivery_milestone = fields.Selection([
+        ('draft', 'Draft'),
+        ('payment_pending', 'Payment Pending'),
+        ('confirmed', 'Payment Confirmed'),
+        ('partial_shipped', 'Partially Shipped'),
+        ('shipped', 'Shipped'),
+        ('excess_shipped', 'Excess Shipped'),
+        ('delivered', 'Delivered'),
+    ], string='Delivery Milestone', default='draft', tracking=True,
+       help='Track the delivery progress of this purchase order')
     
     order_line_ids = fields.One2many(
         'distributor.purchase.order.line', 
@@ -53,7 +68,44 @@ class DistributorPurchaseOrder(models.Model):
     def _compute_total_amount(self):
         for order in self:
             order.total_amount = sum(line.subtotal for line in order.order_line_ids)
-    
+
+    @api.model
+    def create(self, vals):
+        """Ensure new orders start with draft milestone"""
+        if 'x_delivery_milestone' not in vals:
+            vals['x_delivery_milestone'] = 'draft'
+        return super(DistributorPurchaseOrder, self).create(vals)
+
+    # =====================================================
+    # MILESTONE ACTION METHODS
+    # =====================================================
+    def action_set_payment_pending(self):
+        """Set milestone to payment pending"""
+        self.write({'x_delivery_milestone': 'payment_pending'})
+
+    def action_confirm_payment(self):
+        """Set milestone to confirmed (payment received)"""
+        self.write({'x_delivery_milestone': 'confirmed'})
+
+    def action_mark_partial_shipped(self):
+        """Set milestone to partially shipped"""
+        self.write({'x_delivery_milestone': 'partial_shipped'})
+
+    def action_mark_shipped(self):
+        """Set milestone to shipped"""
+        self.write({'x_delivery_milestone': 'shipped'})
+
+    def action_mark_excess_shipped(self):
+        """Set milestone to excess shipped"""
+        self.write({'x_delivery_milestone': 'excess_shipped'})
+
+    def action_mark_delivered(self):
+        """Set milestone to delivered"""
+        self.write({'x_delivery_milestone': 'delivered'})
+
+    # =====================================================
+    # EXISTING METHODS
+    # =====================================================
     def action_confirm(self):
         import logging
         _logger = logging.getLogger(__name__)
@@ -276,6 +328,7 @@ class DistributorPurchaseOrder(models.Model):
     
         return location
 
+
 class DistributorPurchaseOrderLine(models.Model):
     _name = 'distributor.purchase.order.line'
     _description = 'Distributor Purchase Order Line'
@@ -310,11 +363,105 @@ class DistributorPurchaseOrderLine(models.Model):
         compute='_compute_subtotal',
         store=True
     )
-    
+
+    # =====================================================
+    # MANUAL SHIPMENT TRACKING (from purchase_manual_shipment)
+    # =====================================================
+    manual_shipped_qty = fields.Float(
+        string='Manual Shipped Qty',
+        digits='Product Unit of Measure',
+        help='Actual quantity shipped',
+        copy=False,
+    )
+
+    qty_diff_manual = fields.Float(
+        string='Shipment Variance',
+        compute='_compute_qty_diff_manual',
+        store=True,
+        digits='Product Unit of Measure',
+        help='Difference between ordered and manually shipped quantity',
+    )
+
+    adjustment_note = fields.Char(
+        string='Adjustment Reason',
+        help='Reason for shipment quantity difference',
+        copy=False,
+    )
+
+    manual_adjusted = fields.Boolean(
+        string='Manually Adjusted',
+        compute='_compute_manual_adjusted',
+        store=True,
+        help='Line has manual shipment adjustment',
+    )
+
+    adjustment_date = fields.Datetime(
+        string='Adjustment Date',
+        copy=False,
+        readonly=True,
+    )
+
+    adjustment_user_id = fields.Many2one(
+        'res.users',
+        string='Adjusted By',
+        copy=False,
+        readonly=True,
+    )
+
+    line_shipment_status = fields.Selection([
+        ('pending', 'Pending'),
+        ('partial', 'Partially Shipped'),
+        ('shipped', 'Fully Shipped'),
+    ], string='Line Status', compute='_compute_line_shipment_status', store=True)
+
     @api.depends('quantity', 'unit_price')
     def _compute_subtotal(self):
         for line in self:
             line.subtotal = line.quantity * line.unit_price
+
+    @api.depends('quantity', 'manual_shipped_qty')
+    def _compute_qty_diff_manual(self):
+        for line in self:
+            if line.manual_shipped_qty and line.manual_shipped_qty > 0:
+                line.qty_diff_manual = line.quantity - line.manual_shipped_qty
+            else:
+                line.qty_diff_manual = 0.0
+
+    @api.depends('manual_shipped_qty', 'quantity')
+    def _compute_manual_adjusted(self):
+        for line in self:
+            line.manual_adjusted = (
+                bool(line.manual_shipped_qty) and
+                line.manual_shipped_qty != line.quantity
+            )
+
+    @api.depends('quantity', 'manual_shipped_qty')
+    def _compute_line_shipment_status(self):
+        for line in self:
+            if not line.manual_shipped_qty or line.manual_shipped_qty == 0:
+                line.line_shipment_status = 'pending'
+            elif line.manual_shipped_qty >= line.quantity:
+                line.line_shipment_status = 'shipped'
+            else:
+                line.line_shipment_status = 'partial'
+
+    def write(self, vals):
+        """Track when manual_shipped_qty is modified"""
+        if 'manual_shipped_qty' in vals:
+            vals = dict(vals)
+            vals['adjustment_date'] = fields.Datetime.now()
+            vals['adjustment_user_id'] = self.env.user.id
+        return super(DistributorPurchaseOrderLine, self).write(vals)
+
+    @api.constrains('manual_shipped_qty')
+    def _check_manual_shipped_qty(self):
+        for line in self:
+            if line.manual_shipped_qty and line.manual_shipped_qty < 0:
+                raise ValidationError(
+                    "Manual shipped quantity cannot be negative for product '{}'.".format(
+                        line.product_id.name or ''
+                    )
+                )
     
     @api.onchange('product_id')
     def _onchange_product_id(self):

@@ -8,6 +8,11 @@
         <field name="arch" type="xml">
             <form string="Distributor Purchase Order">
                 <header>
+                    <!-- Delivery Milestone Statusbar -->
+                    <field name="x_delivery_milestone" widget="statusbar"
+                           options="{'clickable': '1'}"
+                           statusbar_visible="draft,payment_pending,confirmed,partial_shipped,shipped,excess_shipped,delivered"/>
+                    
                     <button name="action_confirm" string="Confirm" type="object" 
                             states="draft" class="btn-primary"/>
                     <button name="action_cancel" string="Cancel" type="object" 
@@ -39,6 +44,13 @@
                                     <field name="quantity"/>
                                     <field name="unit_price"/>
                                     <field name="subtotal"/>
+                                    <field name="manual_shipped_qty"/>
+                                    <field name="qty_diff_manual"/>
+                                    <field name="line_shipment_status" widget="badge"
+                                           decoration-info="line_shipment_status == 'pending'"
+                                           decoration-warning="line_shipment_status == 'partial'"
+                                           decoration-success="line_shipment_status == 'shipped'"/>
+                                    <field name="adjustment_note"/>
                                 </tree>
                             </field>
                         </page>
@@ -63,6 +75,12 @@
                 <field name="total_amount"/>
                 <field name="state" decoration-success="state=='confirmed'" 
                        decoration-info="state=='draft'" decoration-muted="state=='cancelled'"/>
+                <field name="x_delivery_milestone" widget="badge"
+                       decoration-info="x_delivery_milestone == 'draft'"
+                       decoration-warning="x_delivery_milestone in ['payment_pending', 'partial_shipped']"
+                       decoration-primary="x_delivery_milestone == 'confirmed'"
+                       decoration-success="x_delivery_milestone in ['shipped', 'delivered']"
+                       decoration-danger="x_delivery_milestone == 'excess_shipped'"/>
             </tree>
         </field>
     </record>
