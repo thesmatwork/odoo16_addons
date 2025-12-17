@@ -10,4 +10,5 @@ class SaleOrder(models.Model):
         ('shipped', 'Shipped'),
         ('excess_shipped', 'Excess Shipped'),
         ('delivered', 'Delivered'),
+        ('done', 'Done'),
     ], string='Delivery Milestone', default='draft', tracking=True)
